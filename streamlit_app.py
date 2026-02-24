@@ -11,74 +11,83 @@ import folium
 from streamlit_folium import st_folium
 from folium import plugins
 
-# --- CONFIGURACIÓN ---
-st.set_page_config(page_title="Sistemas Inteligentes | Logística", page_icon="🧠", layout="wide")
+# --- CONFIGURACIÓN DE PÁGINA ---
+st.set_page_config(page_title="Sistemas Inteligentes | Smart Route", page_icon="🧠", layout="wide")
 
-# --- ESTILOS CSS CON LOGO PERSONALIZADO ---
+# --- ESTILOS CSS PARA DISEÑO PROFESIONAL ---
 st.markdown("""
     <style>
-    /* Logo en la esquina */
-    .brand-logo {
-        position: absolute;
-        top: -50px;
-        left: 0;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        background: rgba(255,255,255,0.1);
-        padding: 10px 20px;
-        border-radius: 10px;
+    /* Fondo principal y sidebar */
+    .stApp { background-color: #f8f9fa; }
+    [data-testid="stSidebar"] { background-color: #1a1c23; border-right: 1px solid #333; }
+    [data-testid="stSidebar"] * { color: #ffffff !important; }
+
+    /* Contenedor de Cabecera (Hero) */
+    .hero-container {
+        background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+        padding: 50px 30px;
+        border-radius: 15px;
+        color: white;
+        text-align: center;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        position: relative;
     }
-    .logo-icon {
-        background: #00d2ff;
-        width: 35px;
-        height: 35px;
-        border-radius: 8px;
+
+    /* Logo Sistemas Inteligentes */
+    .brand-box {
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: bold;
-        color: #0f2027;
-        box-shadow: 0 0 15px #00d2ff;
+        gap: 15px;
+        margin-bottom: 20px;
     }
-    .brand-name {
-        font-family: 'Segoe UI', sans-serif;
-        font-weight: 800;
-        color: white;
-        letter-spacing: 1px;
-        font-size: 18px;
+    .logo-square {
+        background: #00d2ff;
+        color: #0f2027;
+        padding: 10px 15px;
+        border-radius: 10px;
+        font-weight: 900;
+        font-size: 24px;
+        box-shadow: 0 0 20px rgba(0, 210, 255, 0.5);
+    }
+    .brand-text {
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        color: #ffffff;
+        text-transform: uppercase;
     }
 
-    /* Hero Header */
-    .hero-container {
-        background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-        padding: 60px 40px 40px 40px;
-        border-radius: 20px;
-        color: white;
-        text-align: center;
-        margin-bottom: 30px;
-        position: relative;
-    }
+    /* Títulos y texto */
+    .hero-container h1 { font-size: 36px; margin-top: 10px; color: #ffffff; }
+    .hero-container p { color: #00d2ff; font-size: 18px; opacity: 0.9; }
+
+    /* Estilo de Tarjetas y Editor */
+    .stDataEditor { border-radius: 10px; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
     
+    /* Botones */
     .stButton>button {
-        border-radius: 12px;
-        background: #203a43;
-        color: white;
+        background: #2c5364;
+        color: white !important;
         border: 1px solid #00d2ff;
+        border-radius: 8px;
+        transition: all 0.3s;
     }
+    .stButton>button:hover { background: #00d2ff; color: #0f2027 !important; }
     </style>
     
     <div class="hero-container">
-        <div class="brand-logo">
-            <div class="logo-icon">SI</div>
-            <div class="brand-name">SISTEMAS INTELIGENTES</div>
+        <div class="brand-box">
+            <div class="logo-square">SI</div>
+            <div class="brand-text">SISTEMAS INTELIGENTES</div>
         </div>
-        <h1>🧠 Optimizador de Rutas Estratégico</h1>
+        <h1>Optimizador de Rutas Estratégico</h1>
         <p>Soluciones de software para logística de alta precisión</p>
     </div>
     """, unsafe_allow_html=True)
 
-# --- FUNCIONES (Mantenemos la lógica interna) ---
+# --- FUNCIONES LÓGICAS ---
 def extraer_telefono(texto):
     patron = r'(?:011|11|15)[\s.-]?\d{2,4}[\s.-]?\d{4,6}'
     matches = re.findall(patron, texto)
@@ -122,17 +131,16 @@ if 'df_final' not in st.session_state:
 
 # --- SIDEBAR ---
 with st.sidebar:
-    st.markdown("### 🖥️ Panel de Control")
+    st.markdown("### 🛠️ Panel de Control")
     origen_input = st.text_input("📍 Origen", "Obelisco, Buenos Aires")
     fin_input = st.text_input("🏁 Retorno", "Obelisco, Buenos Aires")
     st.markdown("---")
     archivo_subido = st.file_uploader("Cargar PDF de Entregas", type="pdf")
-    
     if st.button("🗑️ Resetear Datos", use_container_width=True):
         st.session_state.df_final = None
         st.rerun()
 
-# --- LÓGICA DE PROCESAMIENTO ---
+# --- PROCESAMIENTO ---
 if archivo_subido and st.session_state.df_final is None:
     with st.status("Analizando datos para Sistemas Inteligentes...", expanded=True):
         geolocator = ArcGIS()
@@ -166,25 +174,26 @@ if archivo_subido and st.session_state.df_final is None:
                 [{"Tipo": "LLEGADA", "Direccion": fin_input, "Coords": c_fin, "Telefono": ""}]
         st.session_state.df_final = pd.DataFrame(lista)
 
-# --- MAPA Y EDITOR ---
+# --- PANEL INFERIOR (MAPA + TABLA) ---
 if st.session_state.df_final is not None:
     df = st.session_state.df_final
     col_mapa, col_info = st.columns([2, 1])
 
     with col_info:
         st.markdown("### 📋 Planificación Final")
-        edited_df = st.data_editor(df, num_rows="dynamic", use_container_width=True, key="editor_si")
-        if st.button("🔄 Aplicar y Recalcular Mapa"):
+        edited_df = st.data_editor(df, num_rows="dynamic", use_container_width=True, key="editor_si_v2")
+        if st.button("🔄 Aplicar y Recalcular Mapa", use_container_width=True):
             st.session_state.df_final = edited_df
             st.rerun()
 
     with col_mapa:
+        st.markdown("### 🗺️ Mapa de Ruta Inteligente")
         m = folium.Map(location=df.iloc[0]['Coords'], zoom_start=12, tiles="cartodbpositron")
         folium.PolyLine(df['Coords'].tolist(), color="#00d2ff", weight=5, opacity=0.8).add_to(m)
 
         for i, row in df.iterrows():
             lat, lon = row['Coords']
-            g_maps = f"https://www.google.com/maps/dir/?api=1&destination={lat},{lon}"
+            g_maps = f"https://www.google.com/maps?q={lat},{lon}"
             
             tel_html = ""
             if row['Telefono']:
@@ -194,18 +203,16 @@ if st.session_state.df_final is not None:
                        style="flex:1; background:#25D366; color:white; padding:8px; border-radius:5px; text-decoration:none; text-align:center; font-weight:bold; font-size:11px;">WSP</a>
                     <a href="tel:{row['Telefono']}" 
                        style="flex:1; background:#333; color:white; padding:8px; border-radius:5px; text-decoration:none; text-align:center; font-weight:bold; font-size:11px;">Llamar</a>
-                </div>
-                """
+                </div>"""
             
             pop_html = f"""
-            <div style="font-family: sans-serif; width:200px; border-top: 3px solid #00d2ff;">
+            <div style="font-family: sans-serif; width:200px; border-top: 3px solid #00d2ff; padding-top:10px;">
                 <b style="color:#203a43;">Parada #{i}</b><br>
                 <p style="margin:5px 0; font-size:11px;">{row['Direccion']}</p>
                 <a href="{g_maps}" target="_blank" 
                    style="display:block; background:#4285F4; color:white; padding:8px; border-radius:5px; text-decoration:none; text-align:center; font-weight:bold; font-size:11px;">📍 Google Maps</a>
                 {tel_html}
-            </div>
-            """
+            </div>"""
             
             color = "green" if row['Tipo'] == "SALIDA" else ("red" if row['Tipo'] == "LLEGADA" else "blue")
             folium.Marker(
@@ -214,4 +221,4 @@ if st.session_state.df_final is not None:
                 icon=plugins.BeautifyIcon(number=i if row['Tipo']=="ENTREGA" else None, border_color=color, text_color=color, icon_shape='marker')
             ).add_to(m)
 
-        st_folium(m, width="100%", height=600, key="mapa_si")
+        st_folium(m, width="100%", height=600, key="mapa_final_si")
