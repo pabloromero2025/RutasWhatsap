@@ -3,6 +3,5 @@ pdfplumber
 pandas
 requests
 geopy
-xlsxwriter
 folium
 streamlit-folium
