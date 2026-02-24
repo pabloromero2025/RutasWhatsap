@@ -11,60 +11,74 @@ import folium
 from streamlit_folium import st_folium
 from folium import plugins
 
-# --- CONFIGURACIÓN DE PÁGINA ---
-st.set_page_config(page_title="Logística Pro | Smart Route", page_icon="🚚", layout="wide")
+# --- CONFIGURACIÓN ---
+st.set_page_config(page_title="Sistemas Inteligentes | Logística", page_icon="🧠", layout="wide")
 
-# --- ESTILOS CSS AVANZADOS ---
+# --- ESTILOS CSS CON LOGO PERSONALIZADO ---
 st.markdown("""
     <style>
-    /* Fondo general */
-    .stApp {
-        background-color: #f4f7f9;
+    /* Logo en la esquina */
+    .brand-logo {
+        position: absolute;
+        top: -50px;
+        left: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(255,255,255,0.1);
+        padding: 10px 20px;
+        border-radius: 10px;
     }
-    
+    .logo-icon {
+        background: #00d2ff;
+        width: 35px;
+        height: 35px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: #0f2027;
+        box-shadow: 0 0 15px #00d2ff;
+    }
+    .brand-name {
+        font-family: 'Segoe UI', sans-serif;
+        font-weight: 800;
+        color: white;
+        letter-spacing: 1px;
+        font-size: 18px;
+    }
+
     /* Hero Header */
     .hero-container {
         background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-        padding: 40px;
+        padding: 60px 40px 40px 40px;
         border-radius: 20px;
         color: white;
         text-align: center;
         margin-bottom: 30px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        position: relative;
     }
     
-    /* Botones principales */
     .stButton>button {
         border-radius: 12px;
-        height: 50px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        transition: all 0.3s ease;
-        border: none;
-    }
-    
-    .stButton>button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-    }
-
-    /* Estilo del Editor de Datos */
-    .stDataEditor {
-        border-radius: 15px;
-        overflow: hidden;
-        background-color: white;
-    }
-    
-    /* Ajustes para móviles */
-    @media (max-width: 600px) {
-        .hero-container { padding: 20px; }
-        .hero-container h1 { font-size: 24px; }
+        background: #203a43;
+        color: white;
+        border: 1px solid #00d2ff;
     }
     </style>
+    
+    <div class="hero-container">
+        <div class="brand-logo">
+            <div class="logo-icon">SI</div>
+            <div class="brand-name">SISTEMAS INTELIGENTES</div>
+        </div>
+        <h1>🧠 Optimizador de Rutas Estratégico</h1>
+        <p>Soluciones de software para logística de alta precisión</p>
+    </div>
     """, unsafe_allow_html=True)
 
-# --- FUNCIONES LÓGICAS ---
+# --- FUNCIONES (Mantenemos la lógica interna) ---
 def extraer_telefono(texto):
     patron = r'(?:011|11|15)[\s.-]?\d{2,4}[\s.-]?\d{4,6}'
     matches = re.findall(patron, texto)
@@ -102,33 +116,25 @@ def optimizar_orden(coords_inicio, lista_puntos):
         puntos_pendientes.remove(mas_cercano)
     return ruta_optimizada
 
-# --- INTERFAZ ---
-st.markdown("""
-    <div class="hero-container">
-        <h1>🚛 LOGÍSTICA SMART ROUTE</h1>
-        <p>Optimización de KM, Contactos y Navegación en un solo lugar</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-# --- SESIÓN ---
+# --- ESTADO ---
 if 'df_final' not in st.session_state:
     st.session_state.df_final = None
 
-# --- SIDEBAR ESTILIZADO ---
+# --- SIDEBAR ---
 with st.sidebar:
-    st.markdown("### 🛠️ Parámetros de Ruta")
+    st.markdown("### 🖥️ Panel de Control")
     origen_input = st.text_input("📍 Origen", "Obelisco, Buenos Aires")
     fin_input = st.text_input("🏁 Retorno", "Obelisco, Buenos Aires")
     st.markdown("---")
-    archivo_subido = st.file_uploader("📥 Cargar PDF de entregas", type="pdf")
+    archivo_subido = st.file_uploader("Cargar PDF de Entregas", type="pdf")
     
-    if st.button("🗑️ Resetear Sistema", use_container_width=True):
+    if st.button("🗑️ Resetear Datos", use_container_width=True):
         st.session_state.df_final = None
         st.rerun()
 
-# --- PROCESAMIENTO ---
+# --- LÓGICA DE PROCESAMIENTO ---
 if archivo_subido and st.session_state.df_final is None:
-    with st.status("🧠 Optimizando Inteligencia de Ruta...", expanded=True):
+    with st.status("Analizando datos para Sistemas Inteligentes...", expanded=True):
         geolocator = ArcGIS()
         loc_o = geolocator.geocode(origen_input)
         loc_f = geolocator.geocode(fin_input)
@@ -160,45 +166,44 @@ if archivo_subido and st.session_state.df_final is None:
                 [{"Tipo": "LLEGADA", "Direccion": fin_input, "Coords": c_fin, "Telefono": ""}]
         st.session_state.df_final = pd.DataFrame(lista)
 
-# --- VISUALIZACIÓN ---
+# --- MAPA Y EDITOR ---
 if st.session_state.df_final is not None:
     df = st.session_state.df_final
     col_mapa, col_info = st.columns([2, 1])
 
     with col_info:
-        st.markdown("### 📋 Hoja de Ruta")
-        edited_df = st.data_editor(df, num_rows="dynamic", use_container_width=True, key="editor_v5")
-        if st.button("🔄 Refrescar Mapa"):
+        st.markdown("### 📋 Planificación Final")
+        edited_df = st.data_editor(df, num_rows="dynamic", use_container_width=True, key="editor_si")
+        if st.button("🔄 Aplicar y Recalcular Mapa"):
             st.session_state.df_final = edited_df
             st.rerun()
 
     with col_mapa:
         m = folium.Map(location=df.iloc[0]['Coords'], zoom_start=12, tiles="cartodbpositron")
-        folium.PolyLine(df['Coords'].tolist(), color="#2c5364", weight=5, opacity=0.8).add_to(m)
+        folium.PolyLine(df['Coords'].tolist(), color="#00d2ff", weight=5, opacity=0.8).add_to(m)
 
         for i, row in df.iterrows():
             lat, lon = row['Coords']
             g_maps = f"https://www.google.com/maps/dir/?api=1&destination={lat},{lon}"
             
-            # HTML Popup Estilizado
-            tel_btn = ""
+            tel_html = ""
             if row['Telefono']:
-                tel_btn = f"""
-                <div style="display:flex; gap:10px; margin-top:10px;">
-                    <a href="https://wa.me/549{row['Telefono']}?text=Hola! Soy el chofer." target="_blank" 
-                       style="flex:1; background:#25D366; color:white; padding:10px; border-radius:8px; text-decoration:none; text-align:center; font-weight:bold;">WSP</a>
+                tel_html = f"""
+                <div style="display:flex; gap:5px; margin-top:10px;">
+                    <a href="https://wa.me/549{row['Telefono']}?text=Sistemas Inteligentes: Su pedido está en camino." target="_blank" 
+                       style="flex:1; background:#25D366; color:white; padding:8px; border-radius:5px; text-decoration:none; text-align:center; font-weight:bold; font-size:11px;">WSP</a>
                     <a href="tel:{row['Telefono']}" 
-                       style="flex:1; background:#333; color:white; padding:10px; border-radius:8px; text-decoration:none; text-align:center; font-weight:bold;">Llamar</a>
+                       style="flex:1; background:#333; color:white; padding:8px; border-radius:5px; text-decoration:none; text-align:center; font-weight:bold; font-size:11px;">Llamar</a>
                 </div>
                 """
             
             pop_html = f"""
-            <div style="font-family:'Segoe UI',sans-serif; width:220px; padding:5px;">
-                <b style="color:#2c5364; font-size:16px;">Parada #{i}</b><br>
-                <p style="margin:5px 0; font-size:12px; color:#555;">{row['Direccion']}</p>
+            <div style="font-family: sans-serif; width:200px; border-top: 3px solid #00d2ff;">
+                <b style="color:#203a43;">Parada #{i}</b><br>
+                <p style="margin:5px 0; font-size:11px;">{row['Direccion']}</p>
                 <a href="{g_maps}" target="_blank" 
-                   style="display:block; background:#4285F4; color:white; padding:10px; border-radius:8px; text-decoration:none; text-align:center; font-weight:bold; margin-top:5px;">📍 Google Maps</a>
-                {tel_btn}
+                   style="display:block; background:#4285F4; color:white; padding:8px; border-radius:5px; text-decoration:none; text-align:center; font-weight:bold; font-size:11px;">📍 Google Maps</a>
+                {tel_html}
             </div>
             """
             
@@ -209,4 +214,4 @@ if st.session_state.df_final is not None:
                 icon=plugins.BeautifyIcon(number=i if row['Tipo']=="ENTREGA" else None, border_color=color, text_color=color, icon_shape='marker')
             ).add_to(m)
 
-        st_folium(m, width="100%", height=600, key="mapa_pro")
+        st_folium(m, width="100%", height=600, key="mapa_si")
