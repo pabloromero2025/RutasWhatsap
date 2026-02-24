@@ -63,7 +63,7 @@ if 'df_final' not in st.session_state:
     st.session_state.df_final = None
 
 # --- INTERFAZ ---
-st.title("📲 Logística Total: GPS + WhatsApp + Llamadas")
+st.title("📲 Logística Total 🚛")
 
 with st.sidebar:
     st.header("⚙️ Configuración")
@@ -171,3 +171,4 @@ if st.session_state.df_final is not None:
             ).add_to(m)
 
         st_folium(m, width="100%", height=600, key="mapa_v4")
+
