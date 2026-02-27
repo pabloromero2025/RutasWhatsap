@@ -1,0 +1,17 @@
+{
+  "name": "Sistemas Inteligentes | Smart Route",
+  "short_name": "SmartRoute",
+  "description": "Optimización logística",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1c23",
+  "theme_color": "#2c5364",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/854/854878.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
